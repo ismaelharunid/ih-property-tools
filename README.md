@@ -23,11 +23,11 @@ code is available within the limits of the license.
 Installation
 ------------
 
-pip install ih-property-tools
+    pip install ih-property-tools
 
-    or
+or
 
-git clone {git_repository_clone_url}
+    git clone https://github.com/ismaelharunid/ih-property-tools.git
 
 
 Usage
@@ -49,14 +49,14 @@ manually from the constructor.  If you planned to manually initialize
 your properties in the constructor, you might as well just use the
 builtin.property decorator instead.
 
-    ```python
-    from proptools import initialized
+```python
+    from proptools import quick
 
 
     class SimplePerson:
         "Using @initialized @property assumes getter, not initializer."
 
-        @initialized
+        @quick
         @property
         def name(self):
             return self._name or "<anonymous>"
@@ -73,9 +73,8 @@ builtin.property decorator instead.
         def name(self):
             raise NotImplemented(f"Don't make them nameless!")
 
-        @initialized.initialize_all__init__
         def __init__(self):
-            pass
+            quick.initialize(self)
 
     simple_person = SimplePerson()
     print("# simple_person.name", simple_person.name)
@@ -84,16 +83,16 @@ builtin.property decorator instead.
     simple_person.name = "Fred"
     print("# simple_person.name", simple_person.name)
     # simple_person.name Fred
-    ```
+```
 
-    ```python
-    from proptools import initialized
+```python
+    from proptools import quick
 
 
     class ModeratePerson:
         "Using @initialized.property assumes initializer, not getter."
 
-        @initialized.property
+        @quick.property
         def name(self):
             "initializer for property name."
             self._name = None
@@ -113,9 +112,8 @@ builtin.property decorator instead.
             "deleter for property name."
             raise NotImplemented(f"Don't make them nameless!")
 
-        @initialized.initialize_all__new__
-        def __new__(cls):
-            return super().__new__(cls)
+        def __init__(self):
+            quick.initialize(self)
 
     moderate_person = ModeratePerson()
     print("# moderate_person.name", moderate_person.name)
@@ -124,7 +122,7 @@ builtin.property decorator instead.
     moderate_person.name = "Lois"
     print("# moderate_person.name", moderate_person.name)
     # moderate_person.name Lois
-    ```
+```
 
 ### private properties
 
@@ -155,7 +153,7 @@ As with initialized properties, private follow the same convention
 of `@private` `@property` creates a private getter, while
 `@private.property` creates a private initializer.
 
-    ```python
+ ```python
     from proptools import private
 
 
@@ -190,9 +188,9 @@ of `@private` `@property` creates a private getter, while
     simple_person.name = "Fred"
     print("# simple_person.name", simple_person.name)
     # simple_person.name Fred
-    ```
+```
 
-    ```python
+```python
     from proptools import private
 
 
@@ -230,42 +228,84 @@ of `@private` `@property` creates a private getter, while
     moderate_person.name = "Lois"
     print("# moderate_person.name", moderate_person.name)
     # moderate_person.name Lois
-    ```
+```
+
+Using auto()
+------------
+
+If you want to create a standard property in one line, you can used auto(), as...
+
+```python
+from proptools import quick
+from proptools.helpers import auto
+
+class X:
+    a = quick.properties(
+        auto(),  # auto generate initializer
+        auto(),  # auto generate getter
+        auto(),  # auto generate setter
+        initial=0,  # the default initial value for initializer
+        typing=int,  # set typing using cast to `int`, or [int, float] for type checking.
+    )
+
+    def __init__(self):
+        quick.initialize(self)
+```
 
 
-The `tools` sub-module
+The `helpers` sub-module
 ----------------------
 
 The tools module has a handful of short-hand property creators,
 plus a few helpers for sanity testing.
 
-### `proptools.define_property` for single a property definition
+### `proptools.helpers.auto_fget` to auto generate a standard getter. 
 
-    proptools.define_property(
-        "property_name",  # the property access name.
-        typing?,  # the property type hinting or casting.
-        default?,  # the initial value of the property after initialization.
-        private_name?,  # the private name used with the property.
-        private_namespace=auto(),  # the namespace used for the private var.
-        fini=auto(),  # either None, auto() or an actual initializer.
-        fget=auto(),  # either None, auto() or an actual getter.
-        fset=auto(),  # either None, auto() or an actual setter.
-        fdel=auto(),  # either None, auto() or an actual deleter.
-    )
+Auto create getter using jit compilation.
 
-### `proptools.define_properties` for multiple a property definitions
+```python
+    from proptools.helpers import auto_fget
 
-This creates multiple properties of the same type and configuration.
+    class X:
+        a = auto_fget(
+            typing=[int, float],  # the property type hinting or casting.
+            initial=0,  # the initial value of the property after initialization.
+            private_name="_a",  # the private name used with the property.
+            auto_init=True,  # wraps `__init__` with initializer.
+        )
+```
 
-    proptools.define_properties(
-        [property definition, ...], see `@tools.define_property`.
-        default_typing?,  # the property type hinting or casting.
-        auto_fini=auto(),  # True or False for generating initializer.
-        auto_fget=auto(),  # True or False for generating getter.
-        auto_fset=auto(),  # True or False for generating setter.
-        auto_fdel=auto(),  # True or False for generating deleter.
-    )
+### `proptools.preprocess` for expanding auto generated properties in-file.
 
+This creates multiple properties of the same type and configuration within the source.
+
+```python
+    from proptools.preprocess import generate
+
+    class X:
+        @generate(target_dir="build", overwrite=True)
+        a = quick.property(auto(), auto(), auto(), initial=0, typing=int)
+```
+
+Expands to...
+
+```python
+    #from-source: from proptools.preprocess import generate
+
+    class X:
+        @quick.property
+        def a(self, initial=0):
+            self._a = initial
+        @a.getter
+        def a(self):
+            return self._a
+        @a.setter
+        def a(self, value):
+            self._a = value
+
+        def __init__(self):
+            quick.initialize()
+```
 
 ### `proptools.sanity`
 
