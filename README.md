@@ -24,7 +24,7 @@ code is available within the limits of the license.
 Installation
 ------------
 
-    pip install ih-property-tools
+    pip install ih-property-tools  # not yet available pypi, soon!
 
 or
 
