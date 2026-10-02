@@ -35,9 +35,10 @@ Usage
 -----
 
 There are two extended properties available from proptools for this
-version.  These are initialized and private which both can be imported
-from the proptools module, or simple import proptools and use them
-as proptools.initialized and proptools.private.
+version.  These are quick and private which both can be imported
+from the proptools module, you may want auto() from proptools.healers
+as well.  simply `from proptools import quick, private, auto` and use
+them as as decorators.
 
 
 ### initialized properties
