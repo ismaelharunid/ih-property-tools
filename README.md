@@ -1,3 +1,4 @@
+This repository, was just added and only features that have passed tests are currently available in this repo, please be patient.  The full featured alpha release is scheduled for October 14, 2026.  The alpha version will be as it is now, full python.  The version 2 we plan to convert to cython and c.  We are looking for collaborators, so feel free to contact us.  Thank you.
 
 ih-property-tools
 =================
