@@ -285,6 +285,8 @@ This creates multiple properties of the same type and configuration within the s
     class X:
         @generate(target_dir="build", overwrite=True)
         a = quick.property(auto(), auto(), auto(), initial=0, typing=int)
+        def __init__(self):
+            pass
 ```
 
 Expands to...
@@ -304,7 +306,10 @@ Expands to...
             self._a = value
 
         def __init__(self):
+            pass
+            #BEGIN: preprocess generated
             quick.initialize()
+            #END: preprocess generated
 ```
 
 ### `proptools.sanity`
